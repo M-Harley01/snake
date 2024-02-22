@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdlib>
-#include <iostream>
 #include <vector>
 
 #include "raylib.h"
@@ -13,18 +12,14 @@ using namespace std;
 const int screenWidth = 1000;
 const int screenHeight = 1000;
 
-struct snakeHead {
+struct SnakePart {
     Vector2 position;
     Vector2 velocity;
-} snakeHead;
-
-struct snakeBody {
-    Vector2 position;
 };
 
-vector<snakeBody> snBody;
+vector<SnakePart> snake;
 
-struct food {
+struct Food {
     Vector2 position;
 } food;
 
@@ -35,13 +30,15 @@ void updateTheSnake();
 int main(void) {
     srand(time(NULL));
 
-    snakeHead.position = (Vector2){0, 0};
-    snakeHead.velocity = (Vector2){0, 0};
+    SnakePart head;
+    head.position = {0, 0};
+    head.velocity = {SPEED, 0}; 
+    snake.push_back(head);
 
-    int x = (rand() % 25) * 40;
-    int y = (rand() % 25) * 40;
+    int x = (rand() % (screenWidth / SPEED)) * SPEED;
+    int y = (rand() % (screenHeight / SPEED)) * SPEED;
 
-    food.position = (Vector2){static_cast<float>(x), static_cast<float>(y)};
+    food.position = {static_cast<float>(x), static_cast<float>(y)};
 
     InitWindow(screenWidth, screenHeight, "snake");
 
@@ -50,17 +47,14 @@ int main(void) {
     while (!WindowShouldClose()) {
         BeginDrawing();
 
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
 
-        for (size_t i = 0; i < snBody.size(); ++i) {
-        Rectangle bodyPart = {snBody[i + 1].position.x, snBody[i +1].position.y, 40, 40};
-        DrawRectangleRec(bodyPart, GREEN);
-}
+        for (size_t i = 0; i < snake.size(); ++i) {
+                Rectangle bodyPart = {snake[i].position.x, snake[i].position.y, SPEED, SPEED};
+                DrawRectangleRec(bodyPart, GREEN);
+            }
 
-        Rectangle theSnake = {snakeHead.position.x, snakeHead.position.y, 40, 40};
-        DrawRectangleRec(theSnake, RED);
-
-        Rectangle theFood = {food.position.x, food.position.y, 40, 40};
+        Rectangle theFood = {food.position.x, food.position.y, SPEED, SPEED};
         DrawRectangleRec(theFood, BLUE);
 
         updateTheSnake();
@@ -74,46 +68,41 @@ int main(void) {
 }
 
 void updateTheSnake() {
-    snakeHead.position.x += snakeHead.velocity.x;
-    snakeHead.position.y += snakeHead.velocity.y;
+    snake[0].position.x += snake[0].velocity.x;
+    snake[0].position.y += snake[0].velocity.y;
 
-    if (snakeHead.position.x >= screenWidth) {
-        snakeHead.position.x = 0;
-    } else if (snakeHead.position.x < 0) {
-        snakeHead.position.x = screenWidth - 40;
+    if (snake[0].position.x >= screenWidth) {
+        snake[0].position.x = 0;
+    } else if (snake[0].position.x < 0) {
+        snake[0].position.x = screenWidth - SPEED;
     }
 
-    if (snakeHead.position.y >= screenHeight) {
-        snakeHead.position.y = 0;
-    } else if (snakeHead.position.y < 0) {
-        snakeHead.position.y = screenHeight - 40;
+    if (snake[0].position.y >= screenHeight) {
+        snake[0].position.y = 0;
+    } else if (snake[0].position.y < 0) {
+        snake[0].position.y = screenHeight - SPEED;
     }
 
-    for (int i = snBody.size() - 1; i > 0; --i) {
-        snBody[i] = snBody[i - 1];
+    for (int i = snake.size() - 1; i > 0; --i) {
+        snake[i] = snake[i - 1];
     }
 
-    if (!snBody.empty()) {
-        snBody[0] = {snakeHead.position.x, snakeHead.position.y};
-    }
+    if (CheckCollisionRecs({snake[0].position.x, snake[0].position.y, SPEED, SPEED},
+                            {food.position.x, food.position.y, SPEED, SPEED})) {
 
-    if (CheckCollisionRecs({snakeHead.position.x, snakeHead.position.y, 40, 40},{food.position.x, food.position.y, 40, 40})){
-
-        DrawText("collision", 0,0,40,BLACK);
-        snBody.push_back({snakeHead.position.x, snakeHead.position.y});
-
-        int x = (rand() % 25) * 40;
-        int y = (rand() % 25) * 40;
+        snake.push_back({food.position, {0, 0}}); 
+        int x = (rand() % (screenWidth / SPEED)) * SPEED;
+        int y = (rand() % (screenHeight / SPEED)) * SPEED;
         food.position = {(float)x, (float)y};
     }
 
-    if (IsKeyPressed(KEY_LEFT) && snakeHead.velocity.x == 0) {
-        snakeHead.velocity = {-SPEED, 0};
-    } else if (IsKeyPressed(KEY_RIGHT) && snakeHead.velocity.x == 0) {
-        snakeHead.velocity = {SPEED, 0};
-    } else if (IsKeyPressed(KEY_UP) && snakeHead.velocity.y == 0) {
-        snakeHead.velocity = {0, -SPEED};
-    } else if (IsKeyPressed(KEY_DOWN) && snakeHead.velocity.y == 0) {
-        snakeHead.velocity = {0, SPEED};
+    if (IsKeyPressed(KEY_LEFT) && snake[0].velocity.x == 0) {
+        snake[0].velocity = {-SPEED, 0};
+    } else if (IsKeyPressed(KEY_RIGHT) && snake[0].velocity.x == 0) {
+        snake[0].velocity = {SPEED, 0};
+    } else if (IsKeyPressed(KEY_UP) && snake[0].velocity.y == 0) {
+        snake[0].velocity = {0, -SPEED};
+    } else if (IsKeyPressed(KEY_DOWN) && snake[0].velocity.y == 0) {
+        snake[0].velocity = {0, SPEED};
     }
 }
