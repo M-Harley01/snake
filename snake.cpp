@@ -9,8 +9,8 @@ using namespace std;
 
 #define SPEED 40
 
-const int screenWidth = 1000;
-const int screenHeight = 1000;
+const int screenWidth = 1400;
+const int screenHeight = 1400;
 
 struct SnakePart {
     Vector2 position;
@@ -68,6 +68,11 @@ int main(void) {
 }
 
 void updateTheSnake() {
+
+    for (int i = snake.size() - 1; i > 0; --i) {
+        snake[i] = snake[i - 1];
+    }
+
     snake[0].position.x += snake[0].velocity.x;
     snake[0].position.y += snake[0].velocity.y;
 
@@ -82,15 +87,12 @@ void updateTheSnake() {
     } else if (snake[0].position.y < 0) {
         snake[0].position.y = screenHeight - SPEED;
     }
-
-    for (int i = snake.size() - 1; i > 0; --i) {
-        snake[i] = snake[i - 1];
-    }
-
+   
     if (CheckCollisionRecs({snake[0].position.x, snake[0].position.y, SPEED, SPEED},
                             {food.position.x, food.position.y, SPEED, SPEED})) {
 
-        snake.push_back({food.position, {0, 0}}); 
+        snake.push_back({food.position, {0, 0}});
+
         int x = (rand() % (screenWidth / SPEED)) * SPEED;
         int y = (rand() % (screenHeight / SPEED)) * SPEED;
         food.position = {(float)x, (float)y};
